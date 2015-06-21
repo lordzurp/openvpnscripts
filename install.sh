@@ -11,7 +11,7 @@ BITS=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 if [ -f /etc/lsb-release ]; then
   OS=$(cat /etc/lsb-release | grep DISTRIB_ID | sed 's/^.*=//')
   VERSION=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | sed 's/^.*=//')
-if [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] && [ "$VERSION" = "12.04" ] || [ "$VERSION" = "12.10" ] || [ "$VERSION" = "13.04" ] || [ "$VERSION" = "13.10" ] || [ "$VERSION" = "6" ] || [ "$VERSION" = "7" ] ;then
+if [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] && [ "$VERSION" = "14.04" ] || [ "$VERSION" = "12.10" ] || [ "$VERSION" = "13.04" ] || [ "$VERSION" = "13.10" ] || [ "$VERSION" = "6" ] || [ "$VERSION" = "7" ] ;then
 echo "$OS $VERSION $BITS ok"
 elif [ -f /etc/centos-release ]; then
 OS=CentOS
@@ -597,9 +597,9 @@ ln -s /lib/systemd/system/openvpn\@server.service /etc/systemd/system/multi-user
 echo net.ipv4.ip_forward = 1 >> /etc/sysctl.conf
 echo 1 > /proc/sys/net/ipv4/ip_forward
 iptables -A INPUT -p $proto -m state --state NEW -m $proto --dport $port -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -A FORWARD -i tun0 -o eth0 -j ACCEPT
-iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o venet0 -j MASQUERADE
+iptables -A FORWARD -i tun0 -o venet0 -j ACCEPT
+iptables -A FORWARD -i venet0 -o tun0 -j ACCEPT
 service iptables save
 service iptables restart
 cat > /etc/init.d/NAT<<EOF
@@ -619,9 +619,9 @@ cat > /etc/init.d/NAT<<EOF
 
 # Vider les règles personnelles
 iptables -A INPUT -p $proto -m state --state NEW -m $proto --dport $port -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -A FORWARD -i tun0 -o eth0 -j ACCEPT
-iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o venet0 -j MASQUERADE
+iptables -A FORWARD -i tun0 -o venet0 -j ACCEPT
+iptables -A FORWARD -i venet0 -o tun0 -j ACCEPT
 EOF
 chmod 755 /etc/init.d/NAT
 chkconfig --add NAT
